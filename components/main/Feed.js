@@ -1,22 +1,23 @@
-import React, { useState, useEffect,useRef } from 'react'
-import { StyleSheet, View, Text, Image, FlatList, Button, Platform, TouchableOpacity, TouchableNativeFeedback,Share} from 'react-native'
-// import {} from '@expo'
-// import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-// import Share from 'react-native-share'
+import React, { useState, useEffect,useRef } from 'react';
+import {
+     StyleSheet, View, Text, Image, FlatList, Button, Platform, TouchableOpacity,
+     TouchableNativeFeedback,Share, ActivityIndicator,RefreshControl
+    } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import firebase from 'firebase'
-require('firebase/firestore')
-import { connect } from 'react-redux'
-import {Video} from 'expo-av'
-import Colors from '../Constants'
+import firebase from 'firebase';
+require('firebase/firestore');
+import { connect } from 'react-redux';
+import {Video} from 'expo-av';
+import Colors from '../Constants';
 
 function Feed(props) {
+    let onEndReachedCallDuringMomentum = false
     const viewref = useRef();
     const video = React.useRef(null);
-    // console.log(props.route.params.uid);
     const [posts, setPosts] = useState([]);
-
+    const [ isMoreLoading , setIsMoreLoading ] = useState(false)
+    const [ isLoading , setIsLoading ] = useState(false)
     useEffect(() => {
         if (props.usersFollowingLoaded == props.following.length && props.following.length !== 0 ) {
             props.feed.sort(function (x, y) {
@@ -25,14 +26,10 @@ function Feed(props) {
             setPosts(props.feed);
 
         }
-
-
-
-        // console.log(posts);
     }, [props.usersFollowingLoaded, props.feed])
 
     const onLikePress = (userId, postId) => {
-        // likecount(userId, postId)
+        LikeCounts(userId,postId)
         firebase.firestore()
             .collection("posts")
             .doc(userId)
@@ -41,27 +38,22 @@ function Feed(props) {
             .collection("likes")
             .doc(firebase.auth().currentUser.uid)
             .set({})
-           
     }
 
-
-  
-    // likeCount = (postid,userid) => {
-    //     count= 0 ;
-    //     firebase.firestore()
-    //     .collection("posts")
-    //     .doc(userid)
-    //     .collection("userPosts")
-    //     .doc(postid)
-    //     .set({
-    //        ...likesCount ,
-    //        likesCount : count +1
-    //     })
-    // }
-
-
+    const LikeCounts = (userId,postId) => {
+        firebase.firestore()
+            .collection("posts")
+            .doc(userId)
+            .collection("userPosts")
+            .doc(postId)
+            .update({
+                likesCount: firebase.firestore.FieldValue.increment(1)    
+            })
+            
+    }
 
     const onDislikePress = (userId, postId) => {
+        LikeCountsdec(userId, postId) 
         firebase.firestore()
             .collection("posts")
             .doc(userId)
@@ -70,6 +62,18 @@ function Feed(props) {
             .collection("likes")
             .doc(firebase.auth().currentUser.uid)
             .delete()
+    }
+
+    const LikeCountsdec = (userId,postId) => {
+        firebase.firestore()
+            .collection("posts")
+            .doc(userId)
+            .collection("userPosts")
+            .doc(postId)
+            .update({
+                likesCount: firebase.firestore.FieldValue.increment(-1)    
+            })
+            
     }
   
     const onShare = async (item) => {
@@ -86,7 +90,33 @@ function Feed(props) {
 
       };
       
-    //   console.log(post);
+      console.log(posts);
+
+      const renderFooter = () => {
+          if( !isMoreLoading) return true ;
+          return(
+              <ActivityIndicator 
+              size="large"
+              color={Colors.button}
+              style={{marginVertical:'5%'}}
+              />
+          )
+      }
+
+     const getMore = () => {
+                // alert("reachded")
+             setIsMoreLoading(true)
+             setTimeout(() => {
+                setIsMoreLoading(false)
+             },2000)
+     } 
+
+     const onRefresh = () => {
+        setIsLoading(true);
+        setTimeout(() => {
+            setIsLoading(false)
+        }, 2000);
+     }
 
     return (
         <>
@@ -125,14 +155,29 @@ function Feed(props) {
             <View style={styles.containerGallery}>
                 <FlatList
                     showsVerticalScrollIndicator={false}
-                    // style={{marginBottom:"5%"}}
                     numColumns={1}
-                    // onRefresh={() => alert("refreshing")}
                     horizontal={false}
                     data={posts}
+                    ListFooterComponent={renderFooter}
+                    refreshControl = {
+                        <RefreshControl   
+                        refreshing = {isMoreLoading}
+                        onRefresh={onRefresh}
+                        />
+                    }
+                    onEndReachedThreshold={0.1}
+                    onMomentumScrollBegin={() => {onEndReachedCallDuringMomentum}}
+                    onEndReached={() =>
+                        {
+                            if( ! onEndReachedCallDuringMomentum){
+                                getMore();
+                                onEndReachedCallDuringMomentum = true
+                            }
+                        }
+                         }
                     renderItem={({ item }) => (
                         <View style={styles.containerImage} ref={viewref}>
-                            {console.log(item.downloadURL)}
+                            {/* {console.log(item.downloadURL)} */}
                             <View style={{flexDirection:'row',paddingLeft:10,alignItems:"center"}}>
                                 
                                 <Image source = {{uri : item.user.photoURL}} style={{width:60,height:60,borderRadius:30,borderColor:Colors.button,borderWidth:1}}/>
@@ -185,7 +230,7 @@ function Feed(props) {
                                          <MaterialCommunityIcons name="share-outline" size={24} color="black" />
                                     </TouchableOpacity>
                                 </View>
-                                <Text>{item.likesCount}</Text>
+                                <Text onPress={() => props.navigation.navigate('likeList',{postId: item.id})}>{item.likesCount}</Text>
 
                             </View>
                         </View>

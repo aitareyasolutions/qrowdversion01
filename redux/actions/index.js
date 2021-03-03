@@ -1,4 +1,4 @@
-import { USER_STATE_CHANGE, USER_POSTS_STATE_CHANGE, USER_FOLLOWING_STATE_CHANGE, USERS_DATA_STATE_CHANGE,USERS_POSTS_STATE_CHANGE, USERS_LIKES_STATE_CHANGE, CLEAR_DATA} from '../constants/index'
+import { USER_STATE_CHANGE, USER_POSTS_STATE_CHANGE, USER_FOLLOWING_STATE_CHANGE, USERS_DATA_STATE_CHANGE,USERS_POSTS_STATE_CHANGE, USERS_LIKES_STATE_CHANGE, CLEAR_DATA,USER_POST_LIKE_COUNT} from '../constants/index'
 import firebase from 'firebase'
 import { SnapshotViewIOSComponent } from 'react-native'
 require('firebase/firestore')
@@ -32,7 +32,7 @@ export function fetchUserPosts() {
             .collection("posts")
             .doc(firebase.auth().currentUser.uid)
             .collection("userPosts")
-            .orderBy("creation", "asc")
+            .orderBy("creation", "desc")
             .get()
             .then((snapshot) => {
                 let posts = snapshot.docs.map(doc => {
@@ -96,7 +96,7 @@ export function fetchUsersFollowingPosts(uid) {
             .collection("posts")
             .doc(uid)
             .collection("userPosts")
-            .orderBy("creation", "asc")
+            .orderBy("creation", "desc")
             .get()
             .then((snapshot) => {
                 const uid = snapshot.query.EP.path.segments[1];
@@ -139,3 +139,21 @@ export function fetchUsersFollowingLikes(uid, postId) {
             })
     })
 }
+
+
+export function fetchUsersFollowingLikesCount(uid, postId) {
+    return ((dispatch, getState) => {
+        firebase.firestore()
+            .collection("posts")
+            .doc(uid)
+            .collection("userPosts")
+            .doc(postId)
+            .update({
+                 likesCount: firebase.firestore.FieldValue.increment(BigInt64Array(1))
+                 
+         })
+         dispatch({ type: USERS_LIKES_STATE_CHANGE, postId, USER_POST_LIKE_COUNT })
+    })
+}
+
+
