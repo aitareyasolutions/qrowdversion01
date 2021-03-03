@@ -94,7 +94,7 @@ function Profile(props) {
     if (user === null) {
         return <View />
     }
-  console.log(props);
+//   console.log(props);
     return (
         
           <View style={styles.container}>

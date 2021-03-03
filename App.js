@@ -41,8 +41,8 @@ import CommentScreen from './components/main/Comment';
 import EditProfile from './components/main/EditProfile'
 import Search from './components/main/Search';
 import Followerlist from './components/main/Followerlist';
-
-
+import Messages from './components/main/Messages';
+import LikesList from './components/main/LikesList'
 
 
 const Stack = createStackNavigator();
@@ -109,6 +109,8 @@ export class App extends Component {
             <Stack.Screen name="Search"component={Search} navigation={this.props.navigation} />
             <Stack.Screen name="EditProfile"component={EditProfile} navigation = {this.props.navigation} />
             <Stack.Screen name="Followerlist" component={Followerlist} navigation = {this.props.navigation}/>
+            <Stack.Screen name="Messages" component={Messages} navigation = {this.props.navigation}/>
+            <Stack.Screen name="likeList" component ={ LikesList} navigation={this.props.navigation} />
           </Stack.Navigator>
         </NavigationContainer>
      </Provider>

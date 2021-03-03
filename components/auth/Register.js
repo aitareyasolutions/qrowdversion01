@@ -198,9 +198,9 @@ const styles = StyleSheet.create({
         alignItems:'center',
         justifyContent:'space-between',
         paddingHorizontal:10,
-        borderWidth:1,
-        borderColor:'#000',
-        borderRadius:30,
+        borderWidth:StyleSheet.hairlineWidth,
+        borderColor:Colors.gray,
+        borderRadius:10,
         marginVertical:'3%'
     },
     input:{

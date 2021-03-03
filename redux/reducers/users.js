@@ -1,4 +1,4 @@
-import { USERS_DATA_STATE_CHANGE, USERS_POSTS_STATE_CHANGE, USERS_LIKES_STATE_CHANGE, CLEAR_DATA } from "../constants"
+import { USERS_DATA_STATE_CHANGE, USERS_POSTS_STATE_CHANGE, USERS_LIKES_STATE_CHANGE, CLEAR_DATA, USER_POST_LIKE_COUNT } from "../constants"
 
 const initialState = {
     users: [],
@@ -26,6 +26,14 @@ export const users = (state = initialState, action) => {
                     {...post, currentUserLike: action.currentUserLike} :
                     post)
             }
+            case USER_POST_LIKE_COUNT:
+                return {
+                    ...state,
+                    feed: state.feed.map(post => post.id == action.postId ? 
+                        {...post, currentUserLike: action.LikesCount} :
+                        post)
+                }
+             
         case CLEAR_DATA:
             return initialState
         default:
